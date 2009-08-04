@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program (see the file COPYING); if not, write to the
  * Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  *
  ****************************************************************
  */
@@ -450,7 +450,7 @@ struct win *wi;
 	  if (*p)
 	    {
 	      for (p = host; *p; p++)
-		if (*p == '.' || (*p == ':' && p != host))
+		if (/**p == '.' ||*/ (*p == ':' && p != host))
 		  {
 		    *p = '\0';
 		    break;
@@ -604,6 +604,7 @@ struct utmp *u;
 char *line, *user;
 int pid;
 {
+  time_t now;
   u->ut_type = USER_PROCESS;
   strncpy(u->ut_user, user, sizeof(u->ut_user));
   /* Now the tricky part... guess ut_id */
@@ -618,7 +619,10 @@ int pid;
 #endif /* sgi */
   strncpy(u->ut_line, line, sizeof(u->ut_line));
   u->ut_pid = pid;
-  (void)time((time_t *)&u->ut_time);
+  /* must use temp variable because of NetBSD/sparc64, where
+   * ut_xtime is long(64) but time_t is int(32) */
+  (void)time(&now);
+  u->ut_time = now;
 }
 
 static slot_t
@@ -726,9 +730,11 @@ struct utmp *u;
 char *line, *user;
 int pid;
 {
+  time_t now;
   strncpy(u->ut_line, line, sizeof(u->ut_line));
   strncpy(u->ut_name, user, sizeof(u->ut_name));
-  (void)time((time_t *)&u->ut_time);
+  (void)time(&now);
+  u->ut_time = now;
 }
 
 static slot_t
